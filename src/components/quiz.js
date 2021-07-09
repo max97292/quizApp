@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import questions from '../model/questions';
+import axios from 'axios';
 import QuizTemplate from './templates/itemQuizTemplate';
 import Button from '@material-ui/core/Button';
 import Box from '@material-ui/core/Box';
 import ShowDialog from './answer';
 import FormControl from '@material-ui/core/FormControl';
 import FormHelperText from '@material-ui/core/FormHelperText';
-
 import { makeStyles } from '@material-ui/core/styles';
 import { FormLabel } from '@material-ui/core';
 
@@ -34,7 +33,6 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function Quiz(props) {
-
     const classes = useStyles();
 
     const [value, setValue] = useState(0);
@@ -42,29 +40,35 @@ export default function Quiz(props) {
     const [userAnswers, setUserAnswers] = useState([]);
     const [helperText, setHelperText] = useState('');
     const [open, setOpen] = useState(false);
-    const [itemQuiz, setItemQuiz] = useState(null);
     const [personality, setPersonality] = useState('');
     const [personalityInfo, setPersonalityInfo] = useState('');
+    const [questions, setQuestions] = useState([]);
+    const [answers, setAnswers] = useState([]);
 
     useEffect(() => {
-        const itemList = questions.map((item) => {
-            return (
-                <QuizTemplate
-                    key={item.id}
-                    id={item.id}
-                    question={item.question}
-                    answer={item.answers}
-                    setValue={setValue}
-                    setError={setError}
-                    setUserAnswers={setUserAnswers}
-                    userAnswers={userAnswers}
-                />
+        const fetchData = async () => {
+            const respQuestion = await axios('https://my-json-server.typicode.com/max97292/quizQuestions/questions');
+            setQuestions(respQuestion.data);
+        };
+        fetchData();
+    }, []);
 
-            )
-        });
-        setItemQuiz(itemList);
+    const itemList = questions.map((item) => {
+        return (
+            <QuizTemplate
+                key={item.id}
+                id={item.id}
+                question={item.question}
+                setValue={setValue}
+                setError={setError}
+                setUserAnswers={setUserAnswers}
+                userAnswers={userAnswers}
+                answers={answers}
+                setAnswers={setAnswers}
+            />
 
-    }, [questions]);
+        )
+    });
 
     const handleClickOpen = () => {
         setOpen(true);
@@ -77,8 +81,7 @@ export default function Quiz(props) {
             setHelperText('');
             setError(false);
             for (let item of userAnswers) {
-                let resultQuestion = questions.find(i => i.id === item.questionId);
-                let resultAnswer = resultQuestion.answers.find(i => i.answer === item.answer).weight;
+                let resultAnswer = answers.find(i => i.answer === item.answer && i.questionId === item.questionId).weight;
                 sum += resultAnswer;
             }
             if (sum >= 20 && sum <= 37) {
@@ -89,11 +92,11 @@ export default function Quiz(props) {
                 setPersonality("Funny");
                 setPersonalityInfo("You have a wicked sense of humour!");
             }
-            else if(sum > 62 && sum <= 86){
+            else if (sum > 62 && sum <= 86) {
                 setPersonality("Outgoing");
                 setPersonalityInfo("You’re a perfect mix of funny, chill, and intelligence!");
             }
-            else if(sum > 86){
+            else if (sum > 86) {
                 setPersonality("Shy");
                 setPersonalityInfo("You’re shy and reserved!");
             }
@@ -108,12 +111,12 @@ export default function Quiz(props) {
         <form onSubmit={handleSubmit}>
             <FormControl className={classes.container} component="fieldset" error={error}>
                 <FormLabel className={classes.title} component="legend">Tell Us Your Favorite Foods And We’ll Guess What Type Of Personality You Have</FormLabel>
-                <div className={classes.container}>{itemQuiz}</div>
+                <div className={classes.container}>{questions && itemList}</div>
                 <Box className={classes.submit}>
                     <Button variant="contained" type="submit">Submit</Button>
                 </Box>
                 <FormHelperText className={classes.helper}>{helperText}</FormHelperText>
-                <ShowDialog open={open} personality={personality} personalityInfo={personalityInfo}/>
+                <ShowDialog open={open} personality={personality} personalityInfo={personalityInfo} />
             </FormControl>
         </form>
     )

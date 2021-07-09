@@ -1,5 +1,4 @@
 import React from 'react';
-
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Button from '@material-ui/core/Button';
@@ -10,7 +9,7 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 export default function ShowDialog(props) {
     const { open } = props;
 
-    const handleReload = () =>{
+    const handleReload = () => {
         document.location.reload();
     }
 
